@@ -20,24 +20,86 @@ function App() {
     setTitle("");
   }
 
+  const handleToggleTodo = (id: number) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    )
+  }
+
   return (
     <>
-      <div className="font-bold text-2xl mb-4">Todo List
-        {todos.map((todo) => (
-          <div key={todo.id}>{todo.title}</div>
-        ))}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)} placeholder="Add a todo"
-        />
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-100 py-8 px-4">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
+              Todoアプリ!!
+            </h1>
+            <div className="flex gap-2 mb-6 ">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="新しいタスクを入力してね"
+                aria-label="新しいタスクを入力"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleAddTodo}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                追加
+              </button>
+            </div>
+            {todos.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <p className="text-lg">タスクがありません</p>
+                <p className="text-sm">新しいタスクを追加してね</p>
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {todos.map((todo) => (
+                  <li
+                    key={todo.id}
+                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 
+                    ${todo.completed
+                        ? 'bg-gray-100 border-gray-300'
+                        : 'bg-white border-gray-300 hover:bg-gray-50'
+                      }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={todo.completed}
+                      onChange={() => handleToggleTodo(todo.id)}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span
+                      className={`flex-1 
+                  ${todo.completed
+                          ? 'line-through text-gray-500'
+                          : 'text-gray-800'
+                        }`}
+                    >
+                      {todo.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
 
-        <button onClick={handleAddTodo}>Add</button>
-        <div>{title}</div>
-      </div >
-
-
+            {todos.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600 text-center">
+                  完了済み: {todos.filter((todo) => todo.completed).length} /{" "} {todos.length}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </>
   )
 }
-export default App
+
+export default App;
