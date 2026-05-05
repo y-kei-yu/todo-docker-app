@@ -1,40 +1,62 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
+
+interface Todo {
+  id: number;
+  title: string;
+  completed: boolean;
+}
 
 function App() {
   const [title, setTitle] = useState("");
-  const [todos, setTodos] = useState([
-    { id: 1, title: 'Todo 1', completed: false },
-    { id: 2, title: 'Todo 2', completed: true },
-    { id: 3, title: 'Todo 3', completed: false },
-  ]);
-  const handleAddTodo = () => {
-    setTodos([
-      ...todos,
-      {
-        id: todos.length + 1,
-        title,
-        completed: false,
-      },
-    ]);
-    setTitle("");
-  }
+  const [todos, setTodos] = useState<Todo[]>([]);
 
-  const handleToggleTodo = (id: number) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    )
+
+  useEffect(() => {
+    const fetchTodos = async () => {
+      const response = await fetch("http://localhost:3000/todos");
+      const data = await response.json();
+      setTodos(data.todos as Todo[]);
+    }
+    fetchTodos();
+  }, [])
+
+  // タスクを追加する関数
+  const handleAddTodo = async () => {
+    const response = await fetch("http://localhost:3000/todos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ title }),
+    });
+
+    const data = await response.json();
+    const todo = data.todo as Todo;
+    setTodos([...todos, todo]);
+  };
+
+  // タスクの完了状態を切り替える関数
+  const handleToggleTodo = async (id: number) => {
+    const response = await fetch(`http://localhost:3000/todos/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ completed: !todos.find(todo => todo.id === id)?.completed })
+    })
+    const data = await response.json();
+    const updatedTodo = data.todo as Todo;
+    setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
   }
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-100 py-8 px-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-8 px-4 bg-auto">
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-              Todoアプリ!!
+              Todoアプリ
             </h1>
             <div className="flex gap-2 mb-6 ">
               <input

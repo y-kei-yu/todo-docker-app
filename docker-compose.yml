@@ -1,0 +1,51 @@
+services:
+  client:
+    build: .
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.app.json:/app/tsconfig.app.json
+      - ./tsconfig.node.json:/app/tsconfig.node.json
+
+  api:
+    build: ./todo-api
+    command: sh -c "npm run prisma:generate && npm run db:push && npm run dev"
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/todo_db
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./todo-api/src:/app/src
+      - ./todo-api/prisma:/app/prisma
+      - ./todo-api/prisma.config.ts:/app/prisma.config.ts
+      - ./todo-api/tsconfig.json:/app/tsconfig.json
+
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d todo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - db-data:/var/lib/postgresql
+
+volumes:
+  db-data:
